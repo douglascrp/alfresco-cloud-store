@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<project name="Alfresco S3 Content Store" default="package-amp" basedir=".">
+<project name="Alfresco Cloud Store" default="package-amp" basedir=".">
 
 	<!-- Properties -->
 	<property environment="env"/>
