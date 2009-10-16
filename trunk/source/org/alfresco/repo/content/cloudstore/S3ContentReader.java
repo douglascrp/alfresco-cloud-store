@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.alfresco.repo.content.s3;
+package org.alfresco.repo.content.cloudstore;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
