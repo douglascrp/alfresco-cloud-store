@@ -14,8 +14,8 @@
 	<property name="project.dir" value="."/>
 	<property name="build.dir" value="${project.dir}/build"/>
 	<property name="config.dir" value="${project.dir}/config"/>
-	<property name="jar.file" value="${build.dir}/lib/s3store.jar"/>
-	<property name="amp.file" value="${build.dir}/dist/s3store.amp"/>
+	<property name="jar.file" value="${build.dir}/lib/alfresco-cloud-store.jar"/>
+	<property name="amp.file" value="${build.dir}/dist/alfresco-cloud-store.amp"/>
 	<property name="war.filename" value="alfresco.war" />
 	<property name="war.file" value="../../../HEAD/root/projects/web-client/build/dist/alfresco.war"/>
 	
@@ -50,7 +50,7 @@
         <zip destfile="${amp.file}" >
         	<fileset dir="${project.dir}/build" includes="lib/*.jar" />
             <fileset dir="${project.dir}" includes="config/**/*.*" excludes="**/module.properties" />
-            <fileset dir="${project.dir}/config/alfresco/module/s3" includes="module.properties" />
+            <fileset dir="${project.dir}/config/alfresco/module/cloudstore" includes="module.properties" />
    			<fileset dir="${project.dir}" includes="web/**/*.*" />
 			<fileset dir="${project.dir}" includes="lib/*.*" />
         </zip>

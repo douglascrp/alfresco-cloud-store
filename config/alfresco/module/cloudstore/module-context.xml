@@ -3,7 +3,7 @@
 
 <beans>
 
-   <bean id="S3ContentStore" class="org.alfresco.repo.content.s3.S3ContentStore">
+   <bean id="CloudContentStore" class="org.alfresco.repo.content.cloudstore.S3ContentStore">
       <constructor-arg>
          <value>${s3.accesskey}</value>
       </constructor-arg>
@@ -33,7 +33,7 @@
 	       <ref bean="contentTransformerRegistry" />
 	   </property>
 	   <property name="store">
-	       <ref bean="S3ContentStore" />
+	       <ref bean="CloudContentStore" />
 	   </property>
 	   <property name="policyComponent">
 	       <ref bean="policyComponent" />
