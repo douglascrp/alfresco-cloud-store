@@ -12,15 +12,15 @@ Simply add this project as a new project to an existing Eclipse Workspace that's
 =Building=
 
 You must edit the following lines on build.xml to point to your Alfresco installation and the "root" directory of your checked out source code:
-
+{{{
 <property name="alfresco.install.dir" value="/PATH/TO/ALFRESCO/INSTALL"/>
 <property name="alfresco.src.dir" value="/PATH/TO/ALFRESCO/SOURCE/OR/SDK"/>
-
+}}}
 For example:
-
+{{{
 <property name="alfresco.install.dir" value="/Users/joebloggs/Alfresco"/>
 <property name="alfresco.src.dir" value="/Users/joebloggs/AlfrescoSource/HEAD/root"/>
-
+}}}
 The build script has been tested only from within Eclipse.
 
 =Installation=
@@ -30,11 +30,11 @@ The default configuration will work automatically. Simply build an AMP and deplo
 You will need to edit custom-repository.properties and supply your Amazon AWS credentials plus an S3 bucket name.
 
 eg.
-{{
+{{{
 s3.accesskey=12345ABCD1234ABCD
 s3.secretkey=XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 s3.bucketname=alfs3bucketsample
-}}
+}}}
 
 =Alternate Configuration=
 
