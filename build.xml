@@ -1,0 +1,74 @@
+<?xml version="1.0"?>
+
+<project name="Alfresco S3 Content Store" default="package-amp" basedir=".">
+
+	<!-- Properties -->
+	<property environment="env"/>
+	
+	<property name="alfresco.install.dir" value="/PATH/TO/ALFRESCO/INSTALL"/>
+	<property name="alfresco.src.dir" value="/PATH/TO/ALFRESCO/SOURCE/OR/SDK"/>
+	
+	<property name="alfresco.deploy.dir" value="${alfresco.install.dir}/tomcat/webapps"/>
+	<property name="alfresco.lib.dir" value="${alfresco.src.dir}/projects/web-client/build/assemble/WEB-INF/lib"/>
+
+	<property name="project.dir" value="."/>
+	<property name="build.dir" value="${project.dir}/build"/>
+	<property name="config.dir" value="${project.dir}/config"/>
+	<property name="jar.file" value="${build.dir}/lib/s3store.jar"/>
+	<property name="amp.file" value="${build.dir}/dist/s3store.amp"/>
+	<property name="war.filename" value="alfresco.war" />
+	<property name="war.file" value="../../../HEAD/root/projects/web-client/build/dist/alfresco.war"/>
+	
+    <target name="clean">
+        <delete dir="${build.dir}"/>
+    </target>
+			
+    <target name="mkdirs" depends="clean">
+        <mkdir dir="${build.dir}/dist" />
+        <mkdir dir="${build.dir}/lib" />
+    	<mkdir dir="${build.dir}/classes" />
+    </target>
+        	
+    <path id="class.path">
+        <dirset dir="${build.dir}" />
+		<fileset dir="${project.dir}/lib"/>
+        <fileset dir="${alfresco.lib.dir}" includes="**/*.jar"/>
+    </path>
+
+	<target name="compile">
+		<javac debug="true" classpathref="class.path" srcdir="${project.dir}/source" destdir="${build.dir}/classes" />
+	</target>
+			
+	<target name="package-jar" depends="compile">
+		<mkdir dir="${build.dir}/classes/META-INF" />
+		<jar destfile="${jar.file}">
+			<fileset dir="${build.dir}/classes" includes="**/*.class, META-INF/*.*" />
+		</jar>
+	</target>
+		
+    <target name="package-amp" depends="mkdirs, package-jar" description="Package the Module" >
+        <zip destfile="${amp.file}" >
+        	<fileset dir="${project.dir}/build" includes="lib/*.jar" />
+            <fileset dir="${project.dir}" includes="config/**/*.*" excludes="**/module.properties" />
+            <fileset dir="${project.dir}/config/alfresco/module/s3" includes="module.properties" />
+   			<fileset dir="${project.dir}" includes="web/**/*.*" />
+			<fileset dir="${project.dir}" includes="lib/*.*" />
+        </zip>
+    </target>
+			
+    <target name="deploy-war" depends="package-amp" description="Update the WAR file.  Set -Dwar.file=..." >
+        <echo>Installing AMP into WAR</echo>
+    	<copy file="${war.file}" todir="${build.dir}/dist" overwrite="true"/>
+    	<copy file="${amp.file}" todir="${build.dir}/amp" overwrite="true"/>
+		<java dir="." fork="true"
+			classname="org.alfresco.repo.module.tool.ModuleManagementTool">
+			<classpath refid="class.path"/>
+			<arg
+				line="install ${build.dir}/amp/ ${build.dir}/dist/${war.filename} 
+				-directory -force -verbose -nobackup"/>
+		</java>
+        <echo>Copy WAR to deploy folder</echo>
+   		<copy file="${build.dir}/dist/${war.filename}" todir="${alfresco.deploy.dir}" overwrite="true"/>
+    </target>
+
+</project>
