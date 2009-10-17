@@ -4,9 +4,12 @@
 
 	<!-- Properties -->
 	<property environment="env"/>
-	
-	<property name="alfresco.install.dir" value="/PATH/TO/ALFRESCO/INSTALL"/>
-	<property name="alfresco.src.dir" value="/PATH/TO/ALFRESCO/SOURCE/OR/SDK"/>
+
+	<!-- ${alfresco.install.dir} and ${alfresco.src.dir} can be defined as Ant runtime 
+	     properties in Eclipse. Otherwise, simply set the ALFRESCO_HOME and ALFRESCO_SOURCE 
+	     environment variables instead.-->
+	<property name="alfresco.install.dir" value="${env.ALFRESCO_HOME}"/>
+	<property name="alfresco.src.dir" value="${env.ALFRESCO_SOURCE}"/>
 	
 	<property name="alfresco.deploy.dir" value="${alfresco.install.dir}/tomcat/webapps"/>
 	<property name="alfresco.lib.dir" value="${alfresco.src.dir}/projects/web-client/build/assemble/WEB-INF/lib"/>
@@ -20,7 +23,9 @@
 	<property name="war.file" value="../../../HEAD/root/projects/web-client/build/dist/alfresco.war"/>
 	
     <target name="clean">
-        <delete dir="${build.dir}"/>
+        <delete dir="${build.dir}/dist"/>
+		<delete dir="${build.dir}/lib" />
+		<delete dir="${build.dir}/classes"/>
     </target>
 			
     <target name="mkdirs" depends="clean">
