@@ -1,0 +1,99 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE beans PUBLIC '-//SPRING//DTD BEAN//EN' 'http://www.springframework.org/dtd/spring-beans.dtd'>
+ 
+<beans>
+  <bean id="replicatedContentStore" class="org.alfresco.repo.content.replication.ReplicatingContentStore" >
+     <!-- the preferred store for reads and writes -->
+     <property name="primaryStore">
+        <ref bean="fileContentStore" />
+     </property>
+     <!-- fastest to slowest, including any read-only stores -->
+     <property name="secondaryStores">
+        <list>
+           <ref bean="S3ContentStore" />
+        </list>
+     </property>
+     <!-- enable content missing from the primary store to be pulled in from the secondary stores -->
+     <property name="inbound">
+        <value>true</value>
+     </property>
+     <!-- enable replication from the primary to the secondary stores -->
+     <property name="outbound">
+        <value>true</value>
+     </property>
+  </bean>
+
+	<bean id="contentService" class="org.alfresco.repo.content.RoutingContentService" init-method="init">
+	   <property name="transactionService">
+	       <ref bean="transactionService" />
+	   </property>
+	   <property name="retryingTransactionHelper">
+	       <ref bean="retryingTransactionHelper"/>
+	   </property>
+	   <property name="dictionaryService">
+	       <ref bean="dictionaryService" />
+	   </property>
+	   <property name="nodeService">
+	       <ref bean="nodeService" />
+	   </property>
+	   <property name="transformerRegistry">
+	       <ref bean="contentTransformerRegistry" />
+	   </property>
+	   <property name="store">
+	       <ref bean="replicatedContentStore" />
+	   </property>
+	   <property name="policyComponent">
+	       <ref bean="policyComponent" />
+	   </property>
+	   <property name="avmService">
+	       <ref bean="avmService"/>
+	   </property>
+	   <property name="imageMagickContentTransformer">
+	      <ref bean="transformer.ImageMagick" />
+	   </property>
+	</bean>
+   <!-- deleted content will get pushed into this store, where it can be cleaned up at will -->
+   <bean id="deletedContentStore" class="org.alfresco.repo.content.filestore.FileContentStore">
+      <constructor-arg>
+         <value>${dir.contentstore.deleted}</value>
+      </constructor-arg>
+   </bean>
+   <!-- bean to move deleted content into the the backup store -->
+   <bean id="deletedContentBackupListener" class="org.alfresco.repo.content.cleanup.DeletedContentBackupCleanerListener" >
+      <property name="store">
+         <ref bean="deletedContentStore" />
+      </property>
+   </bean>
+   <!-- Performs the content cleanup -->
+   <bean id="contentStoreCleaner" class="org.alfresco.repo.content.cleanup.ContentStoreCleaner" >
+      <property name="dictionaryService">
+         <ref bean="dictionaryService" />
+      </property>
+      <property name="nodeDaoService" >
+         <ref bean="nodeDaoService" />
+      </property>
+      <property name="avmNodeDAO">
+            <ref bean="avmNodeDAO"/>
+      </property>
+      <property name="contentUrlDAO">
+      	  <ref bean="contentUrlDAO"/>
+      </property>
+      <property name="transactionService" >
+         <ref bean="transactionService" />
+      </property>
+      <property name="protectDays" >
+         <value>14</value>
+      </property>
+      <property name="stores" >
+         <list>
+            <ref bean="replicatedContentStore" />
+         </list>
+      </property>
+      <property name="listeners" >
+         <list>
+            <ref bean="deletedContentBackupListener" />
+         </list>
+      </property>
+   </bean>
+
+</beans>
