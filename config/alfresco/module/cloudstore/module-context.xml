@@ -3,7 +3,90 @@
 
 <beans>
 
-   <bean id="fileContentStore" class="org.alfresco.repo.content.cloudstore.S3ContentStore">
+	<!--  Caching Content Store -->
+	<bean id="fileContentStore" class="org.alfresco.repo.content.caching.CachingContentStore" init-method="init">
+		<property name="backingStore" ref="s3ContentStore" />
+		<property name="cache" ref="contentCache" />
+		<property name="cacheOnInbound" value="${system.content.caching.cacheOnInbound}" />
+		<property name="quota" ref="standardQuotaManager" />
+	</bean>
+
+	<bean id="contentCache" class="org.alfresco.repo.content.caching.ContentCacheImpl">
+		<property name="memoryStore" ref="cachingContentStoreCache" />
+		<property name="cacheRoot" value="${dir.cachedcontent}" />
+	</bean>
+
+	<bean id="cachingContentStoreCache" class="org.alfresco.repo.cache.EhCacheAdapter">
+		<property name="cache">
+			<bean class="org.springframework.cache.ehcache.EhCacheFactoryBean">
+				<property name="cacheManager">
+					<ref bean="internalEHCacheManager" />
+				</property>
+				<property name="cacheName">
+					<value>org.alfresco.cache.cachingContentStoreCache</value>
+				</property>
+				<property name="eternal" value="false" />
+				<property name="timeToLive"
+					value="${system.content.caching.timeToLiveSeconds}" />
+				<property name="timeToIdle"
+					value="${system.content.caching.timeToIdleSeconds}" />
+				<property name="maxElementsInMemory"
+					value="${system.content.caching.maxElementsInMemory}" />
+				<property name="maxElementsOnDisk"
+					value="${system.content.caching.maxElementsOnDisk}" />
+				<property name="overflowToDisk" value="true" />
+				<property name="diskPersistent" value="true" />
+			</bean>
+		</property>
+	</bean>
+
+	<bean id="standardQuotaManager"
+		class="org.alfresco.repo.content.caching.quota.StandardQuotaStrategy"
+		init-method="init" destroy-method="shutdown">
+		<property name="maxUsageMB" value="4096" />
+		<property name="maxFileSizeMB" value="0" />
+		<property name="cache" ref="contentCache" />
+		<property name="cleaner" ref="cachedContentCleaner" />
+	</bean>
+	
+	<!--  Caching Content Cleaner -->
+	<bean id="cachingContentStoreCleanerJobDetail" class="org.springframework.scheduling.quartz.JobDetailBean">
+		<property name="jobClass">
+			<value>org.alfresco.repo.content.caching.cleanup.CachedContentCleanupJob</value>
+		</property>
+		<property name="jobDataAsMap">
+			<map>
+				<entry key="cachedContentCleaner">
+					<ref bean="cachedContentCleaner" />
+				</entry>
+			</map>
+		</property>
+	</bean>
+
+	<bean id="cachedContentCleaner"
+		class="org.alfresco.repo.content.caching.cleanup.CachedContentCleaner"
+		init-method="init">
+		<property name="minFileAgeMillis" value="${system.content.caching.minFileAgeMillis}" />
+		<property name="maxDeleteWatchCount" value="${system.content.caching.maxDeleteWatchCount}" />
+		<property name="cache" ref="contentCache" />
+		<property name="usageTracker" ref="standardQuotaManager" />
+	</bean>
+
+	<bean id="cachingContentStoreCleanerTrigger" class="org.alfresco.util.CronTriggerBean">
+		<property name="jobDetail">
+			<ref bean="cachingContentStoreCleanerJobDetail" />
+		</property>
+		<property name="scheduler">
+			<ref bean="schedulerFactory" />
+		</property>
+		<property name="cronExpression">
+			<value>${system.content.caching.contentCleanup.cronExpression}</value>
+		</property>
+	</bean>
+	<!--  End Caching Content Store -->
+
+	<!--  S3 Caching Content Store -->
+   <bean id="s3ContentStore" class="org.alfresco.repo.content.cloudstore.S3ContentStore">
       <constructor-arg>
          <value>${s3.accesskey}</value>
       </constructor-arg>
@@ -14,36 +97,18 @@
          <value>${s3.bucketname}</value>
       </constructor-arg>
    </bean>
-<!-- This is an example of how the S3ContentStore can be wired in as the default Content Store 
-	
-	<bean id="contentService" class="org.alfresco.repo.content.RoutingContentService" init-method="init">
-	   <property name="transactionService">
-	       <ref bean="transactionService" />
-	   </property>
-	   <property name="retryingTransactionHelper">
-	       <ref bean="retryingTransactionHelper"/>
-	   </property>
-	   <property name="dictionaryService">
-	       <ref bean="dictionaryService" />
-	   </property>
-	   <property name="nodeService">
-	       <ref bean="nodeService" />
-	   </property>
-	   <property name="transformerRegistry">
-	       <ref bean="contentTransformerRegistry" />
-	   </property>
-	   <property name="store">
-	       <ref bean="CloudContentStore" />
-	   </property>
-	   <property name="policyComponent">
-	       <ref bean="policyComponent" />
-	   </property>
-	   <property name="avmService">
-	       <ref bean="avmService"/>
-	   </property>
-	   <property name="imageMagickContentTransformer">
-	      <ref bean="transformer.ImageMagick" />
-	   </property>
-	</bean>-->
+
+	<!--  S3 Content Store (no caching) -->
+   <!-- <bean id="fileContentStore" class="org.alfresco.repo.content.cloudstore.S3ContentStore">
+      <constructor-arg>
+         <value>${s3.accesskey}</value>
+      </constructor-arg>
+	  <constructor-arg>
+         <value>${s3.secretkey}</value>
+      </constructor-arg>
+	  <constructor-arg>
+         <value>${s3.bucketname}</value>
+      </constructor-arg>
+   </bean>-->
 
 </beans>
