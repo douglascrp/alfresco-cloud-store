@@ -137,19 +137,8 @@ public class S3ContentReader extends AbstractContentReader {
 		try {
 			objectDetails = s3.getObjectDetails(bucket, nodeUrl);
 		} catch (S3ServiceException e) {
-			if(e.getResponseCode() == 404) {
-				// The object key doesn't exist, create it and try again
-				try {
-					s3.putObject(bucket, new S3Object(nodeUrl));
-					objectDetails = s3.getObjectDetails(bucket, nodeUrl);
-					return;
-				} catch (S3ServiceException e1) {
-					logger.error("S3ContentReader Failed to get Object Details, attempted to create object ["+nodeUrl+"]: " + e1.getMessage());
-					e1.printStackTrace();
-				}
-			}
-			logger.error("S3ContentReader Failed to get Object Details: " + e.getMessage());
-			e.printStackTrace();
+			logger.warn("S3ContentReader Failed to get Object Details: " + e.getMessage());
+			//e.printStackTrace();
 		} finally {
 			cleanup();
 		}
