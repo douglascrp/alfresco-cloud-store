@@ -1,0 +1,129 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE beans PUBLIC '-//SPRING//DTD BEAN//EN' 'http://www.springframework.org/dtd/spring-beans.dtd'>
+<!--
+    Licensed to the Apache Software Foundation (ASF) under one or more
+    contributor license agreements.  See the NOTICE file distributed with
+    this work for additional information regarding copyright ownership.
+    The ASF licenses this file to You under the Apache License, Version 2.0
+    (the "License"); you may not use this file except in compliance with
+    the License.  You may obtain a copy of the License at
+    	
+    http://www.apache.org/licenses/LICENSE-2.0
+    	
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+-->
+<beans>
+
+    <!--  Caching Content Store -->
+    <bean id="fileContentStore" class="org.alfresco.repo.content.caching.CachingContentStore" init-method="init">
+        <property name="backingStore" ref="s3ContentStore"/>
+        <property name="cache" ref="contentCache"/>
+        <property name="cacheOnInbound" value="${system.content.caching.cacheOnInbound}"/>
+        <property name="quota" ref="standardQuotaManager"/>
+    </bean>
+
+    <bean id="contentCache" class="org.alfresco.repo.content.caching.ContentCacheImpl">
+        <property name="memoryStore" ref="cachingContentStoreCache"/>
+        <property name="cacheRoot" value="${dir.cachedcontent}"/>
+    </bean>
+
+    <bean id="cachingContentStoreCache" class="org.alfresco.repo.cache.EhCacheAdapter">
+        <property name="cache">
+            <bean class="org.springframework.cache.ehcache.EhCacheFactoryBean">
+                <property name="cacheManager">
+                    <ref bean="internalEHCacheManager"/>
+                </property>
+                <property name="cacheName">
+                    <value>org.alfresco.cache.cachingContentStoreCache</value>
+                </property>
+                <property name="eternal" value="false"/>
+                <property name="timeToLive"
+                          value="${system.content.caching.timeToLiveSeconds}"/>
+                <property name="timeToIdle"
+                          value="${system.content.caching.timeToIdleSeconds}"/>
+                <property name="maxElementsInMemory"
+                          value="${system.content.caching.maxElementsInMemory}"/>
+                <property name="maxElementsOnDisk"
+                          value="${system.content.caching.maxElementsOnDisk}"/>
+                <property name="overflowToDisk" value="true"/>
+                <property name="diskPersistent" value="true"/>
+            </bean>
+        </property>
+    </bean>
+
+    <bean id="standardQuotaManager"
+          class="org.alfresco.repo.content.caching.quota.StandardQuotaStrategy"
+          init-method="init" destroy-method="shutdown">
+        <property name="maxUsageMB" value="4096"/>
+        <property name="maxFileSizeMB" value="0"/>
+        <property name="cache" ref="contentCache"/>
+        <property name="cleaner" ref="cachedContentCleaner"/>
+    </bean>
+
+    <!--  Caching Content Cleaner -->
+    <bean id="cachingContentStoreCleanerJobDetail" class="org.springframework.scheduling.quartz.JobDetailBean">
+        <property name="jobClass">
+            <value>org.alfresco.repo.content.caching.cleanup.CachedContentCleanupJob</value>
+        </property>
+        <property name="jobDataAsMap">
+            <map>
+                <entry key="cachedContentCleaner">
+                    <ref bean="cachedContentCleaner"/>
+                </entry>
+            </map>
+        </property>
+    </bean>
+
+    <bean id="cachedContentCleaner"
+          class="org.alfresco.repo.content.caching.cleanup.CachedContentCleaner"
+          init-method="init">
+        <property name="minFileAgeMillis" value="${system.content.caching.minFileAgeMillis}"/>
+        <property name="maxDeleteWatchCount" value="${system.content.caching.maxDeleteWatchCount}"/>
+        <property name="cache" ref="contentCache"/>
+        <property name="usageTracker" ref="standardQuotaManager"/>
+    </bean>
+
+    <bean id="cachingContentStoreCleanerTrigger" class="org.alfresco.util.CronTriggerBean">
+        <property name="jobDetail">
+            <ref bean="cachingContentStoreCleanerJobDetail"/>
+        </property>
+        <property name="scheduler">
+            <ref bean="schedulerFactory"/>
+        </property>
+        <property name="cronExpression">
+            <value>${system.content.caching.contentCleanup.cronExpression}</value>
+        </property>
+    </bean>
+    <!--  End Caching Content Store -->
+
+    <!--  S3 Caching Content Store -->
+    <bean id="s3ContentStore" class="org.alfresco.repo.content.cloudstore.S3ContentStore">
+        <constructor-arg>
+            <value>${s3.accesskey}</value>
+        </constructor-arg>
+        <constructor-arg>
+            <value>${s3.secretkey}</value>
+        </constructor-arg>
+        <constructor-arg>
+            <value>${s3.bucketname}</value>
+        </constructor-arg>
+    </bean>
+
+    <!--  S3 Content Store (no caching) -->
+    <!-- <bean id="fileContentStore" class="org.alfresco.repo.content.cloudstore.S3ContentStore">
+       <constructor-arg>
+          <value>${s3.accesskey}</value>
+       </constructor-arg>
+       <constructor-arg>
+          <value>${s3.secretkey}</value>
+       </constructor-arg>
+       <constructor-arg>
+          <value>${s3.bucketname}</value>
+       </constructor-arg>
+    </bean>-->
+
+</beans>
