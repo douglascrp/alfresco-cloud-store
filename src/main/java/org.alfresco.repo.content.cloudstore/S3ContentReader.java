@@ -28,6 +28,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jets3t.service.S3Service;
 import org.jets3t.service.S3ServiceException;
+import org.jets3t.service.ServiceException;
 import org.jets3t.service.model.S3Bucket;
 import org.jets3t.service.model.S3Object;
 
@@ -134,11 +135,13 @@ public class S3ContentReader extends AbstractContentReader {
 		}
 		
 		try {
-			objectDetails = s3.getObjectDetails(bucket, nodeUrl);
+			objectDetails = s3.getObject(bucket.getName(), nodeUrl);
 		} catch (S3ServiceException e) {
 			logger.warn("S3ContentReader Failed to get Object Details: " + e.getMessage());
 			//e.printStackTrace();
-		} finally {
+		} catch (ServiceException e) {
+            e.printStackTrace();
+        } finally {
 			cleanup();
 		}
 	} // end info()

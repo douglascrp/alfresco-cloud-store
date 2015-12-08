@@ -4,7 +4,11 @@
 <beans>
     <bean id="contentService" parent="baseContentService">
         <property name="store">
+            <!-- cached s3 contentStore
             <ref bean="cachingContentStore"/>
+            -->
+            <!-- localContentStore replicated to the cached s3 contentStore -->
+            <ref bean="replicatedContentStore"/>
         </property>
     </bean>
 
@@ -93,6 +97,29 @@
         </property>
         <property name="startDelayMinutes">
             <value>${system.cronJob.startDelayMinutes}</value>
+        </property>
+    </bean>
+
+    <bean id="localDriveContentStore" class="org.alfresco.repo.content.filestore.FileContentStore">
+        <constructor-arg>
+            <value>${dir.root}/contentstore</value>
+        </constructor-arg>
+    </bean>
+
+    <bean id="replicatedContentStore" class="org.alfresco.repo.content.replication.ReplicatingContentStore" >
+        <property name="primaryStore">
+            <ref bean="localDriveContentStore" />
+        </property>
+        <property name="secondaryStores">
+            <list>
+                <ref bean="cachingContentStore" />
+            </list>
+        </property>
+        <property name="outbound">
+            <value>true</value>
+        </property>
+        <property name="retryingTransactionHelper">
+            <ref bean="retryingTransactionHelper"/>
         </property>
     </bean>
 </beans>
