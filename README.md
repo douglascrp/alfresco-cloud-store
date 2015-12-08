@@ -45,7 +45,6 @@ s3.bucketname=alfs3bucketsample
 
 The project is configured to use a caching content store. The following properties will need to be added to your alfresco-global.properties.
 
-```
 dir.cachedcontent=/path/to/cache
 system.content.caching.cacheOnInbound=true
 system.content.caching.maxDeleteWatchCount=1
@@ -57,7 +56,6 @@ system.content.caching.maxElementsOnDisk=10000
 system.content.caching.minFileAgeInMillis=2000
 system.content.caching.maxUsageMB=4096
 system.content.caching.maxFileSizeMB=0
-```
 
 For more information on these properties and caching content store configuration see http://docs.alfresco.com/5.0/tasks/ccs-config.html.
 
