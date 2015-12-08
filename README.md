@@ -57,7 +57,7 @@ system.content.caching.minFileAgeInMillis=2000
 system.content.caching.maxUsageMB=4096
 system.content.caching.maxFileSizeMB=0
 
-For more information on these properties and caching content store configuration see http://wiki.alfresco.com/wiki/CachingContentStore.
+For more information on these properties and caching content store configuration see http://docs.alfresco.com/5.0/tasks/ccs-config.html.
 
 # Alternate Configuration #
 
