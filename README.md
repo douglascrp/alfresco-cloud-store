@@ -1,6 +1,7 @@
 # UPDATE #
 
 This project was originally hosted at http://code.google.com/p/alfresco-cloud-store
+It was created and maintained by [Luis Sala](https://twitter.com/luissala) and [Michael McCarthy](https://twitter.com/MMcCarthy01)
 
 As Alfresco now offers a supported S3 connector, this project was "dead", then I decided to export it to github before google code was turned off.
 
