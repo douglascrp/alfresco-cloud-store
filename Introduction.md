@@ -22,29 +22,13 @@ mvn clean install -DskipTests=true
 
 You can even execute the project in order to test it executing the run.sh file, but first, you have to set your Amazon AWS credentials plus an S3 bucket name.
 Edit the file src/test/properties/local/alfresco-global.properties and add the properties below:
-                                                                                                           
+
 eg.
 ```
 s3.accesskey=12345ABCD1234ABCD
 s3.secretkey=XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 s3.bucketname=alfs3bucketsample
 ```
-
-The project is configured to use a caching content store. The following properties will need to be added to your alfresco-global.properties.
-
-dir.cachedcontent=${dir.root}/cachedcontent
-system.content.caching.cacheOnInbound=true
-system.content.caching.maxDeleteWatchCount=1
-system.content.caching.contentCleanup.cronExpression=0 0 3 * * ?
-system.content.caching.timeToLiveSeconds=0 
-system.content.caching.timeToIdleSeconds=60
-system.content.caching.maxElementsInMemory=5000
-system.content.caching.maxElementsOnDisk=10000
-system.content.caching.minFileAgeInMillis=2000
-system.content.caching.maxUsageMB=4096
-system.content.caching.maxFileSizeMB=0
-
-For more information on these properties and caching content store configuration see http://docs.alfresco.com/5.0/concepts/ccs-props.html.
 
 # Installation #
 
@@ -59,12 +43,53 @@ s3.secretkey=XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 s3.bucketname=alfs3bucketsample
 ```
 
+The project is configured to use a caching content store. The following properties will need to be added to your alfresco-global.properties.
+
+dir.cachedcontent=/path/to/cache
+system.content.caching.cacheOnInbound=true
+system.content.caching.maxDeleteWatchCount=1
+system.content.caching.contentCleanup.cronExpression=0 0 3 * * ?
+system.content.caching.timeToLiveSeconds=0
+system.content.caching.timeToIdleSeconds=60
+system.content.caching.maxElementsInMemory=5000
+system.content.caching.maxElementsOnDisk=10000
+system.content.caching.minFileAgeInMillis=2000
+system.content.caching.maxUsageMB=4096
+system.content.caching.maxFileSizeMB=0
+
+For more information on these properties and caching content store configuration see http://wiki.alfresco.com/wiki/CachingContentStore.
+
 # Alternate Configuration #
 
-This configuration was not tested yet.
 One can configure a replicated configuration that uses both the local filesystem and S3 to store content. The primary benefit is that the local filesystem can be purged at will in order to control disk utilization. For example, a cron job could be used to clear the local filesystem contentstore every night at midnight. This can happen while Alfresco is still running. Request for files will be redirected to S3 which will then populate the local filestore to make future read operations perform faster.
 
-See: [replicating-s3-content-services-context.xml.sample](http://code.google.com/p/alfresco-cloud-store/source/browse/trunk/replicating-s3-content-services-context.xml.sample)
+In order to enable this architecture, edit the service-context.xml and change the contentService bean from:
+
+```
+<bean id="contentService" parent="baseContentService">
+    <property name="store">
+        <!-- cached s3 contentStore
+        <ref bean="cachingContentStore"/>
+        -->
+        <!-- localContentStore replicated to the cached s3 contentStore -->
+        <ref bean="replicatedContentStore"/>
+    </property>
+</bean>
+```
+
+to
+```
+<bean id="contentService" parent="baseContentService">
+    <property name="store">
+        <!-- cached s3 contentStore -->
+        <ref bean="cachingContentStore"/>
+
+        <!-- localContentStore replicated to the cached s3 contentStore
+        <ref bean="replicatedContentStore"/>
+         -->
+    </property>
+</bean>
+```
 
 # Contributing #
 
