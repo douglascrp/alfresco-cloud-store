@@ -71,11 +71,12 @@ In order to enable this architecture, edit the service-context.xml and change th
 ```
 <bean id="contentService" parent="baseContentService">
     <property name="store">
-        <!-- cached s3 contentStore
+        <!-- cached s3 contentStore -->
         <ref bean="cachingContentStore"/>
-        -->
-        <!-- localContentStore replicated to the cached s3 contentStore -->
+
+        <!-- localContentStore replicated to the cached s3 contentStore
         <ref bean="replicatedContentStore"/>
+         -->
     </property>
 </bean>
 ```
@@ -84,12 +85,11 @@ to
 ```
 <bean id="contentService" parent="baseContentService">
     <property name="store">
-        <!-- cached s3 contentStore -->
+        <!-- cached s3 contentStore
         <ref bean="cachingContentStore"/>
-
-        <!-- localContentStore replicated to the cached s3 contentStore
+        -->
+        <!-- localContentStore replicated to the cached s3 contentStore -->
         <ref bean="replicatedContentStore"/>
-         -->
     </property>
 </bean>
 ```
