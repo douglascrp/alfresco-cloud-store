@@ -37,6 +37,12 @@ The default configuration will work automatically. Simply build an AMP and deplo
 
 You will need to edit alfresco-global.properties and supply your Amazon AWS credentials plus an S3 bucket name.
 
+**Warning**
+
+> This configuration has to be applied before the first Alfresco startup.
+> The initial configuration whether to cache or not needs to be made on initial install only. 
+> Once its set it cant be changed with out wiping database and contentStores.
+
 eg.
 ```
 s3.accesskey=12345ABCD1234ABCD
